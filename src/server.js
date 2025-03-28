@@ -71,9 +71,9 @@ const main = async () => {
 
       let exchanges = [];
       for (let exchange of top3Exchanges) {
-        const fetchTieckersUrl = new URL(`https://api.coingecko.com/api/v3/exchanges/${exchange.id}/tickers`);
-        fetchTieckersUrl.searchParams.append('coin_ids', coins.map(coin => coin.id).join());
-        const tickersResponse = await axios.get(fetchTieckersUrl, axiosConfig);
+        const fetchTickersUrl = new URL(`https://api.coingecko.com/api/v3/exchanges/${exchange.id}/tickers`);
+        fetchTickersUrl.searchParams.append('coin_ids', coins.map(coin => coin.id).join());
+        const tickersResponse = await axios.get(fetchTickersUrl, axiosConfig);
         const priceAgainstUSDT = tickersResponse.data.tickers.filter(t => coins.map(coin => coin.symbol.toUpperCase()).includes(t.base) && t.target === 'USDT');
         exchanges = exchanges.concat(priceAgainstUSDT);
       }
@@ -81,16 +81,18 @@ const main = async () => {
       let exchangeData = [];
       for (let coin of coins) {
         let totalPrice = 0;
-        let n = 0;
-        exchanges.filter(t => t.base === coin.symbol.toUpperCase()).forEach(t => {
+        const exchangesForThisCoin = exchanges.filter(t => t.base === coin.symbol.toUpperCase());
+        if (exchangesForThisCoin.length === 0) {
+          continue;
+        }
+        exchangesForThisCoin.forEach(t => {
           totalPrice = totalPrice + t.last;
-          n = n + 1;
           exchangeData.push({
             exchange: t.market.name,
             price: t.last
           });
         });
-        const averagePrice = totalPrice / n;
+        const averagePrice = totalPrice / exchangesForThisCoin.length;
 
         // Store data in Hyperbee
         const timestamp = Date.now();
