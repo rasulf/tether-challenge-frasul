@@ -78,7 +78,6 @@ const main = async () => {
         exchanges = exchanges.concat(priceAgainstUSDT);
       }
       // exchanges = stub.exchanges;
-      let exchangeData = [];
       for (let coin of coins) {
         let totalPrice = 0;
         let exchangeData = [];
