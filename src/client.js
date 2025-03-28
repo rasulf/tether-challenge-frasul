@@ -50,7 +50,7 @@ const main = async () => {
   const latestPricesPayloadRaw = Buffer.from(JSON.stringify(latestPricesPayload), 'utf-8');
   const latestPricesRespRaw = await rpc.request(serverPubKey, 'getLatestPrices', latestPricesPayloadRaw);
   const latestPricesResp = JSON.parse(latestPricesRespRaw.toString('utf-8'));
-  console.log('Latest Prices:', latestPricesResp);
+  console.log('Latest Prices:', JSON.stringify(latestPricesResp));
 
   // Example usage of getHistoricalPrices
   const historicalPricesPayload = { pairs: ['btc', 'eth'], from: Date.now() - 2 * 24 * 60 * 60 * 1000, to: Date.now() }; // Last 24 hours
@@ -58,7 +58,7 @@ const main = async () => {
   const historicalPricesPayloadRaw = Buffer.from(JSON.stringify(historicalPricesPayload), 'utf-8');
   const historicalPricesRespRaw = await rpc.request(serverPubKey, 'getHistoricalPrices', historicalPricesPayloadRaw);
   const historicalPricesResp = JSON.parse(historicalPricesRespRaw.toString('utf-8'));
-  console.log('Historical Prices:', historicalPricesResp);
+  console.log('Historical Prices:', JSON.stringify(historicalPricesResp));
 
   // closing connection
   await rpc.destroy()
