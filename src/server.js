@@ -43,8 +43,6 @@ const main = async () => {
   const rpcServer = rpc.createServer()
   await rpcServer.listen()
   console.log('rpc server started listening on public key:', rpcServer.publicKey.toString('hex'))
-  // rpc server started listening on public key: 763cdd329d29dc35326865c4fa9bd33a45fdc2d8d2564b11978ca0d022a44a19
-
 
   // Function to fetch and process crypto data
   const fetchAndStoreCryptoData = async () => {
@@ -62,24 +60,24 @@ const main = async () => {
       fetchTopCoinsUrl.searchParams.append('page', 1);
       fetchTopCoinsUrl.searchParams.append('sparkline', 'false');
 
-      // const response = await axios.get(fetchTopCoinsUrl, axiosConfig);
-      // const coins = response.data;
-      const coins = stub.coins;
+      const response = await axios.get(fetchTopCoinsUrl, axiosConfig);
+      const coins = response.data;
+      // const coins = stub.coins;
 
       const exchangesUrl = `https://api.coingecko.com/api/v3/exchanges`;
-      // const exchangesResponse = await axios.get(exchangesUrl, axiosConfig);
-      // const top3Exchanges = exchangesResponse.data.sort((a, b) => (b.trust_score - a.trust_score)).slice(0,3);
+      const exchangesResponse = await axios.get(exchangesUrl, axiosConfig);
+      const top3Exchanges = exchangesResponse.data.sort((a, b) => (b.trust_score - a.trust_score)).slice(0,3);
       // todo: use trust score rank
 
       let exchanges = [];
-      // for (let exchange of top3Exchanges) {
-      //   const fetchTieckersUrl = new URL(`https://api.coingecko.com/api/v3/exchanges/${exchange.id}/tickers`);
-      //   fetchTieckersUrl.searchParams.append('coin_ids', coins.map(coin => coin.id).join());
-      //   const tickersResponse = await axios.get(fetchTieckersUrl, axiosConfig);
-      //   const priceAgainstUSDT = tickersResponse.data.tickers.filter(t => coins.map(coin => coin.symbol.toUpperCase()).includes(t.base) && t.target === 'USDT');
-      //   exchanges = exchanges.concat(priceAgainstUSDT);
-      // }
-      exchanges = stub.exchanges;
+      for (let exchange of top3Exchanges) {
+        const fetchTieckersUrl = new URL(`https://api.coingecko.com/api/v3/exchanges/${exchange.id}/tickers`);
+        fetchTieckersUrl.searchParams.append('coin_ids', coins.map(coin => coin.id).join());
+        const tickersResponse = await axios.get(fetchTieckersUrl, axiosConfig);
+        const priceAgainstUSDT = tickersResponse.data.tickers.filter(t => coins.map(coin => coin.symbol.toUpperCase()).includes(t.base) && t.target === 'USDT');
+        exchanges = exchanges.concat(priceAgainstUSDT);
+      }
+      // exchanges = stub.exchanges;
       let exchangeData = [];
       for (let coin of coins) {
         let totalPrice = 0;
@@ -90,7 +88,6 @@ const main = async () => {
           exchangeData.push({
             exchange: t.market.name,
             price: t.last
-            // price: t.converted_last.usdt,
           });
         });
         const averagePrice = totalPrice / n;
@@ -98,14 +95,13 @@ const main = async () => {
         // Store data in Hyperbee
         const timestamp = Date.now();
         const hbeeKey = `${coin.symbol}-${timestamp.toString()}`;
-        // await hbee.put(new Date().toString(), 'val');
         await hbee.put(hbeeKey, JSON.stringify({
           symbol: coin.symbol,
           price: averagePrice,
           exchanges: exchangeData,
           timestamp: timestamp,
         }));
-        console.log(hbeeKey);
+        // console.log(hbeeKey);
       }
       console.log('Crypto data fetched and stored successfully.');
     } catch (error) {
@@ -191,8 +187,8 @@ const main = async () => {
     return respRaw
   })
 
-  // Schedule data fetching every 30 seconds
-  // setInterval(fetchAndStoreCryptoData, 30000);
+  // Schedule data fetching every 5 minnutes
+  setInterval(fetchAndStoreCryptoData, 5 * 60 * 1000);
 
   // Initial data fetch
   await fetchAndStoreCryptoData();
