@@ -81,6 +81,7 @@ const main = async () => {
       let exchangeData = [];
       for (let coin of coins) {
         let totalPrice = 0;
+        let exchangeData = [];
         const exchangesForThisCoin = exchanges.filter(t => t.base === coin.symbol.toUpperCase());
         if (exchangesForThisCoin.length === 0) {
           continue;
